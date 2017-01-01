@@ -15,7 +15,7 @@ def randomize(max_dur=5):
         def new_func(*args, **kwargs):
             random.seed(time())
             sleep(random.random() % max_dur)
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         return new_func
     return decorate
 
@@ -26,7 +26,7 @@ if __name__ == '__main__':
         f.count+=1
         print "count is " + str(f.count)
 
-    @randomize(4)
+    @randomize
     def delay(string="world"):
         print "hello"+" "+string
 

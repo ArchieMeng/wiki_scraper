@@ -8,14 +8,13 @@ from collections import deque
 from decorators import *
 
 
-@randomize()
+@randomize(5)
 def random_urlopen(url):
     req = urlopen(url)
-    content = req.read()
-    return content
+    return req
 
 
-def getlinks(sublink, depth=1):
+def getlinks(sublink, depth=1, send=False):
     try:
         graph_file = open('wiki' + sublink[5:] + '.pickle', 'r')
         page_list = deque()
@@ -23,23 +22,25 @@ def getlinks(sublink, depth=1):
         for v in graph.vertices():
             if graph.get_degree(v)['out'] == 0:
                 page_list.append((v, depth))
-        try:
-            send_mail('506759765@qq.com',
-                      'Task: scrapying ' + sublink + ' continuing',
-                      'with deepth:' + str(depth))
-        except:
-            print "email is not sent"
+        if send:
+            try:
+                send_mail('506759765@qq.com',
+                          'Task: scrapying ' + sublink + ' continuing',
+                          'with deepth:' + str(depth))
+            except:
+                print "email is not sent"
 
     except:
         # None exist
         page_list = deque([(sublink, depth)])
         graph = Graph()
-        try:
-            send_mail('506759765@qq.com',
-                      'Task: scrapying ' + sublink + ' started',
-                      'deepth:' + str(depth))
-        except:
-            print "email is not sent"
+        if send:
+            try:
+                send_mail('506759765@qq.com',
+                          'Task: scrapying ' + sublink + ' started',
+                          'deepth:' + str(depth))
+            except:
+                print "email is not sent"
 
     # while page_list is not empty
     while page_list:
@@ -48,12 +49,13 @@ def getlinks(sublink, depth=1):
 
         # if reach max deepth, ignore it
         if page_depth > 0:
-            content = random_urlopen(wikiurl + page)
+            req = random_urlopen(wikiurl + page)
+            content = req.read()
             parent_page = page
 
             # use lxml first
             try:
-                soup = BeautifulSoup(content,'lxml')
+                soup = BeautifulSoup(content, 'lxml')
             except:
                 soup = BeautifulSoup(content)
 
@@ -69,12 +71,13 @@ def getlinks(sublink, depth=1):
     pickle.dump(graph,graph_file,2)
     graph_file.close()
     v_num = len(graph.vertices())
-    try:
-        send_mail('506759765@qq.com',
-                  'The scrapy for '+sublink+' is done!',
-                  str(v_num)+' vertices was reached!\n')
-    except:
-        print 'email is not sent'
+    if send:
+        try:
+            send_mail('506759765@qq.com',
+                      'The scrapy for '+sublink+' is done!',
+                      str(v_num)+' vertices was reached!\n')
+        except:
+            print 'email is not sent'
 
 wikiurl = "http://en.wikipedia.org"
 print wikiurl
