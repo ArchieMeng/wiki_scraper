@@ -14,7 +14,7 @@ def randomize(max_dur=5):
     def decorate(func):
         def new_func(*args, **kwargs):
             random.seed(time())
-            sleep(random.random() % max_dur)
+            sleep(random.randint(0,max_dur))
             return func(*args, **kwargs)
         return new_func
     return decorate
