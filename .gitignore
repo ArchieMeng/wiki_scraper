@@ -30,6 +30,9 @@ var/
 *.manifest
 *.spec
 
+# Email data
+*.p
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
@@ -81,6 +84,9 @@ celerybeat-schedule
 # virtualenv
 venv/
 ENV/
+
+# pycharm's config
+.idea/
 
 # Spyder project settings
 .spyderproject
