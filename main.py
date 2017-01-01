@@ -8,10 +8,11 @@ from collections import deque
 from decorators import *
 
 
-@randomize
+@randomize()
 def random_urlopen(url):
     req = urlopen(url)
-    return req.read()
+    content = req.read()
+    return content
 
 
 def getlinks(sublink, depth=1):
