@@ -48,7 +48,7 @@ def getlinks(sublink, depth=1):
 
         # if reach max deepth, ignore it
         if page_depth > 0:
-            content = random_urlopen(page)
+            content = random_urlopen(wikiurl + page)
             parent_page = page
 
             # use lxml first
