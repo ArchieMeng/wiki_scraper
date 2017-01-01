@@ -5,6 +5,13 @@ from graph import Graph
 import pickle
 from sendmail import send_mail
 from collections import deque
+from decorators import *
+
+
+@randomize
+def random_urlopen(url):
+    req = urlopen(url)
+    return req.read()
 
 
 def getlinks(sublink, depth=1):
@@ -40,8 +47,7 @@ def getlinks(sublink, depth=1):
 
         # if reach max deepth, ignore it
         if page_depth > 0:
-            req = urlopen(wikiurl+page)
-            content = req.read()
+            content = random_urlopen(page)
             parent_page = page
 
             # use lxml first
@@ -71,6 +77,6 @@ def getlinks(sublink, depth=1):
 
 wikiurl = "http://en.wikipedia.org"
 print wikiurl
-getlinks('')
+getlinks('', depth=5)
 
 
