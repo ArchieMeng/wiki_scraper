@@ -1,6 +1,3 @@
-import re
-
-
 class Graph(object):
     def __init__(self, graph_obj=None, graph_dic={}):
         Graph.INIT_DEGREE_DIC = {'in': 0, 'out': 0}
@@ -164,7 +161,6 @@ class Graph(object):
                         tmp_graph_dic[next_v] = v
                 next_V += tmp_V
             V = next_V
-
 
     def all_path_between(self, src, dst, path=None):
         success_path = []
