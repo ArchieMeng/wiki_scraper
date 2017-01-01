@@ -3,14 +3,14 @@
 Wiki scraper is a web spider to explore articles on [Wikipedia](https://www.wikipedia.org/).
 
 ### Dependency
--Python 2.7
--collections
--BeautifulSoup
--urllib
--re
--pickle
--smtplib
--email
+- Python 2.7
+- collections
+- BeautifulSoup
+- urllib
+- re
+- pickle
+- smtplib
+- email
 
 ### Installation
 1.install dependences
