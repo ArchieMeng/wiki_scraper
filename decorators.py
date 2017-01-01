@@ -11,10 +11,13 @@ def static_var(**kwargs):
 
 
 def randomize(max_dur=5):
+    if max_dur < 1:
+        max_dur = 5
+
     def decorate(func):
         def new_func(*args, **kwargs):
             random.seed(time())
-            sleep(random.randint(0,max_dur))
+            sleep(random.randint(1,max_dur))
             return func(*args, **kwargs)
         return new_func
     return decorate
@@ -26,7 +29,7 @@ if __name__ == '__main__':
         f.count+=1
         print "count is " + str(f.count)
 
-    @randomize
+    @randomize(6)
     def delay(string="world"):
         print "hello"+" "+string
 
