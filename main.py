@@ -8,7 +8,7 @@ from collections import deque
 from decorators import *
 
 
-@randomize(5)
+@randomize(20)
 def random_urlopen(url):
     req = urlopen(url)
     return req
@@ -16,19 +16,19 @@ def random_urlopen(url):
 
 def getlinks(sublink, depth=1, send=False):
     try:
-        graph_file = open('wiki' + sublink[5:] + '.pickle', 'r')
-        page_list = deque()
-        graph = Graph(pickle.load(graph_file).get_neighbour())
-        for v in graph.vertices():
-            if graph.get_degree(v)['out'] == 0:
-                page_list.append((v, depth))
-        if send:
-            try:
-                send_mail('506759765@qq.com',
-                          'Task: scrapying ' + sublink + ' continuing',
-                          'with deepth:' + str(depth))
-            except:
-                print "email is not sent"
+        with open('wiki' + sublink[5:] + '.pickle', 'r') as graph_file:
+            page_list = deque()
+            graph = Graph(pickle.load(graph_file).get_neighbour())
+            for v in graph.vertices():
+                if graph.get_degree(v)['out'] == 0:
+                    page_list.append((v, depth))
+            if send:
+                try:
+                    send_mail('506759765@qq.com',
+                              'Task: scrapying ' + sublink + ' continuing',
+                              'with deepth:' + str(depth))
+                except:
+                    print "email is not sent"
 
     except:
         # None exist
@@ -49,7 +49,13 @@ def getlinks(sublink, depth=1, send=False):
 
         # if reach max deepth, ignore it
         if page_depth > 0:
-            req = random_urlopen(wikiurl + page)
+            try:
+                req = random_urlopen(WIKI_URL + page)
+            except Exception as e:
+                print "While opening url:\"{}\", an {} exception was raised ".format(WIKI_URL + page, e)
+                page_list.append((page, page_depth))
+                continue
+
             content = req.read()
             parent_page = page
 
@@ -79,8 +85,8 @@ def getlinks(sublink, depth=1, send=False):
         except:
             print 'email is not sent'
 
-wikiurl = "http://en.wikipedia.org"
-print wikiurl
+WIKI_URL = "http://en.wikipedia.org"
+print WIKI_URL
 getlinks('', depth=5)
 
 

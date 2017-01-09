@@ -30,7 +30,7 @@ class Graph(object):
             self.degree_dic[v] = dict(Graph.INIT_DEGREE_DIC)
 
     # partially match
-    def find_vertex(self,word):
+    def find_vertex(self, word):
         v = []
         for vertex in self.vertices():
             if vertex.find(word) != -1:
