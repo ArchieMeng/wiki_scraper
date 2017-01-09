@@ -11,13 +11,18 @@ def static_var(**kwargs):
 
 
 def randomize(max_dur=5):
-    if max_dur < 1:
+    # this function will not delay when max_dur equal -1
+    if max_dur == -1:
+        method_delay = False
+    elif max_dur < 1:
         max_dur = 5
+        method_delay = True
 
     def decorate(func):
         def new_func(*args, **kwargs):
-            random.seed(time())
-            sleep(random.randint(1,max_dur))
+            if method_delay:
+                random.seed(time())
+                sleep(random.randint(1,max_dur))
             return func(*args, **kwargs)
         return new_func
     return decorate
