@@ -6,6 +6,8 @@ import pickle
 from sendmail import send_mail
 from collections import deque
 from decorators import *
+from cache_container.CacheContainer import CacheContainer
+import psutil as ps
 
 WIKI_URL = "http://en.wikipedia.org"
 
@@ -45,10 +47,21 @@ def getlinks(sublink, depth=1, send=False):
             except:
                 print "email is not sent"
 
+    cache_container = CacheContainer()
+
     # while page_list is not empty
-    while page_list:
-        page = tuple(page_list.popleft())
-        (page, page_depth) = page
+    while page_list or cache_container.has_next():
+        if page_list:
+            page = tuple(page_list.popleft())
+            (page, page_depth) = page
+        else:
+            page_list = cache_container.load()
+            continue
+
+        if ps.virtual_memory().percent > 95:
+            cache_container.dump(page_list)
+            del page_list
+            page_list = deque()
 
         # if reach max deepth, ignore it
         if page_depth > 0:
