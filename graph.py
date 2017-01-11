@@ -1,6 +1,9 @@
 class Graph(object):
-    def __init__(self, graph_obj=None, graph_dic={}):
-        Graph.INIT_DEGREE_DIC = {'in': 0, 'out': 0}
+    INIT_DEGREE_DIC = [('in', 0), ('out', 0)]
+
+    def __init__(self, graph_obj=None, graph_dic=None):
+        if graph_dic is None:
+            graph_dic = {}
         if graph_obj is not None:
             self.__graph_dic = graph_obj.__graph_dic
             self.degree_dic = graph_obj.degree_dic
@@ -22,7 +25,7 @@ class Graph(object):
             self.add_vertices(not_exist_vertex)
 
     def vertices(self):
-        return set(self.__graph_dic.keys())
+        return self.__graph_dic.keys()
 
     def add_vertices(self, v):
         if v not in self.__graph_dic:
@@ -70,23 +73,32 @@ class Graph(object):
                 self.degree_dic[vertex]['out'] += 1
                 self.degree_dic[neighbour]['in'] += 1
 
-    def get_degree(self,vertex):
+    def get_degree(self, vertex):
         return self.degree_dic[vertex]
 
-    def get_parent(self,vertex):
-        parent = []
+    def get_parent(self, vertex):
+        parent = set()
         for v in self.__graph_dic:
             if vertex in self.__graph_dic[v]:
-                parent.append(v)
+                parent.add(v)
         return parent
 
-    #distance function.Must be fix when we are using a graph with som distance between vertices
+    def merge(self, graph):
+        if isinstance(graph, Graph):
+            graph_dic = graph.get_neighbour()
+            for v in graph_dic:
+                for neighbour in graph_dic[v]:
+                    self.add_edge((v, neighbour))
+        else:
+            raise TypeError
+
+    # distance function.Must be fix when we are using a graph with som distance between vertices
     @staticmethod
     def distance(a, b):
         return 1
 
     # dijstra algorithm
-    def path_between(self,src,dst):
+    def path_between(self, src, dst):
         if src is dst:
             return [src]
 
@@ -99,14 +111,14 @@ class Graph(object):
         # define -1 as inf here
         for v in self.vertices():
             if v in self.get_neighbour(src):
-                D[v] = self.distance(src,v)
+                D[v] = self.distance(src, v)
                 P[v] = src
             else:
                 D[v] = -1
         P[src] = None
         S.append(src)
 
-        while dst not in P and P.keys() is not S:
+        while dst not in P and P.keys() != S:
             unselected_p = [p for p in P if p not in S]
             select_p = unselected_p[0]
             # select the closest unselected point
@@ -117,7 +129,7 @@ class Graph(object):
 
             for neighbour in self.get_neighbour(select_p):
                 if D[select_p] + self.distance(select_p,neighbour) < D[neighbour] or D[neighbour] is -1:
-                    D[neighbour] = D[select_p] + self.distance(select_p,neighbour)
+                    D[neighbour] = D[select_p] + self.distance(select_p, neighbour)
                     P[neighbour] = select_p
 
         if P.keys() is S:
