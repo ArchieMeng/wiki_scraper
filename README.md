@@ -11,6 +11,7 @@ Wiki scraper is a web spider to explore articles on [Wikipedia](https://www.wiki
 - pickle
 - smtplib
 - email
+- psutil
 
 ### Installation
 1.install dependences
