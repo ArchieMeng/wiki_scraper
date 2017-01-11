@@ -47,21 +47,24 @@ def getlinks(sublink, depth=1, send=False):
             except:
                 print "email is not sent"
 
-    cache_container = CacheContainer()
-
+    list_container = CacheContainer()
+    graph_container = CacheContainer()
     # while page_list is not empty
-    while page_list or cache_container.has_next():
+    while page_list or list_container.has_next():
         if page_list:
             page = tuple(page_list.popleft())
             (page, page_depth) = page
         else:
-            page_list = cache_container.load()
+            page_list = list_container.load()
             continue
 
-        if ps.virtual_memory().percent > 95:
-            cache_container.dump(page_list)
+        if ps.virtual_memory().percent > 80:
+            list_container.dump(page_list, name="list")
             del page_list
             page_list = deque()
+            graph_container.dump(graph, name="graph")
+            del graph
+            graph = Graph()
 
         # if reach max deepth, ignore it
         if page_depth > 0:
@@ -89,17 +92,20 @@ def getlinks(sublink, depth=1, send=False):
                     page_list.appendleft((page, page_depth - 1))
                 graph.add_edge([parent_page, page])
 
-    graph_file = open('wiki'+sublink[5:]+'.pickle', 'wb')
-    pickle.dump(graph,graph_file, 2)
-    graph_file.close()
-    v_num = len(graph.vertices())
-    if send:
-        try:
-            send_mail('506759765@qq.com',
-                      'The scrapy for '+sublink+' is done!',
-                      str(v_num)+' vertices was reached!\n')
-        except:
-            print 'email is not sent'
+    with open('wiki'+sublink[5:]+'.pickle', 'wb') as graph_file:
+        for graph_cache in graph_container:
+            graph.merge(graph_cache)
+
+        pickle.dump(graph,graph_file, 2)
+        graph_file.close()
+        v_num = len(graph.vertices())
+        if send:
+            try:
+                send_mail('506759765@qq.com',
+                          'The scrapy for '+sublink+' is done!',
+                          str(v_num)+' vertices was reached!\n')
+            except:
+                print 'email is not sent'
 
 if __name__ == "__main__":
     print WIKI_URL
