@@ -8,6 +8,7 @@ from collections import deque
 from decorators import *
 from cache_container.CacheContainer import CacheContainer
 import psutil as ps
+import gc
 
 WIKI_URL = "http://en.wikipedia.org"
 
@@ -58,13 +59,15 @@ def getlinks(sublink, depth=1, send=False):
             page_list = list_container.load()
             continue
 
-        if ps.virtual_memory().percent > 80:
+        if ps.virtual_memory().percent > 80 and Graph.get_neighbour():
             list_container.dump(page_list, name="list")
             del page_list
             page_list = deque()
             graph_container.dump(graph, name="graph")
             del graph
             graph = Graph()
+            gc.collect()
+
 
         # if reach max deepth, ignore it
         if page_depth > 0:
