@@ -13,7 +13,7 @@ import gc
 WIKI_URL = "http://en.wikipedia.org"
 
 
-@randomize(-1)
+@randomize(30)
 def random_urlopen(url):
     r = urlopen(url)
     return r
@@ -50,6 +50,7 @@ def getlinks(sublink, depth=1, send=False):
 
     list_container = CacheContainer()
     graph_container = CacheContainer()
+    graph.get_neighbour()
     # while page_list is not empty
     while page_list or list_container.has_next():
         if page_list:
@@ -59,7 +60,7 @@ def getlinks(sublink, depth=1, send=False):
             page_list = list_container.load()
             continue
 
-        if ps.virtual_memory().percent > 80 and Graph.get_neighbour():
+        if ps.virtual_memory().percent > 80 and graph.get_neighbour():
             list_container.dump(page_list, name="list")
             del page_list
             page_list = deque()
