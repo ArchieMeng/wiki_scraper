@@ -13,6 +13,13 @@ class Graph(object):
             self.__complete_vertices()
             self.__compute_degree()
 
+    def to_csv(self, name="graph.csv"):
+        with open(name, 'w') as f:
+            for src in self.__graph_dic:
+                for dst in self.__graph_dic[src]:
+                    f.write('{},{}\n'.format(src, dst))
+
+
     def __complete_vertices(self):
         add_list = set()
 
