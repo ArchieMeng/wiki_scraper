@@ -104,6 +104,7 @@ def getlinks(sublink, depth=1, send=False):
         graph.to_csv(name=title+".csv")
         for graph_cache in graph_container:
             graph_cache.to_csv(name=title+str(i)+".csv")
+            i += 1
 
         v_num = len(graph.vertices())
         if send:
