@@ -99,11 +99,12 @@ def getlinks(sublink, depth=1, send=False):
                 graph.add_edge([parent_page, page])
 
     with open('wiki'+sublink[5:]+'.pickle', 'wb') as graph_file:
+        title = sublink[5:]
+        i = 0
+        graph.to_csv(name=title+".csv")
         for graph_cache in graph_container:
-            graph.merge(graph_cache)
+            graph_cache.to_csv(name=title+str(i)+".csv")
 
-        pickle.dump(graph,graph_file, 2)
-        graph_file.close()
         v_num = len(graph.vertices())
         if send:
             try:
