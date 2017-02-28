@@ -60,14 +60,16 @@ def getlinks(sublink, depth=1, send=False):
             page_list = list_container.load()
             continue
 
-        if ps.virtual_memory().percent > 80 and graph.get_neighbour():
+        if ps.virtual_memory().percent > 80:
             list_container.dump(page_list, name="list")
             del page_list
             page_list = deque()
-            graph_container.dump(graph, name="graph")
-            del graph
-            graph = Graph()
-            gc.collect()
+            if graph.get_neighbour():
+                graph_container.dump(graph, name="graph")
+                del graph
+                graph = Graph()
+            while ps.virtual_memory().percent > 80:
+                gc.collect()
 
 
         # if reach max deepth, ignore it
