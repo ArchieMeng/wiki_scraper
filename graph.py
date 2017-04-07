@@ -1,43 +1,30 @@
+from __future__ import print_function
+
+from collections import defaultdict
+from copy import copy
+
+
 class Graph(object):
+
     INIT_DEGREE_DIC = [('in', 0), ('out', 0)]
 
-    def __init__(self, graph_obj=None, graph_dic=None):
-        if graph_dic is None:
-            graph_dic = {}
-        if graph_obj is not None:
-            self.__graph_dic = graph_obj.__graph_dic
-            self.degree_dic = graph_obj.degree_dic
+    def __init__(self, **kwargs):
+        if 'graph_obj' in kwargs:
+            self.__graph_dic__ = copy(kwargs['graph_obj'].__graph_dic__)
+            self.degree_dic = copy(kwargs['graph_obj'].degree_dic)
         else:
-            self.__graph_dic = dict(graph_dic)
-            self.degree_dic = {}
-            self.__complete_vertices()
-            self.__compute_degree()
+            self.__graph_dic__ = defaultdict(list)
+            self.degree_dic = defaultdict(lambda: defaultdict(int))
+            self.__compute_degree__()
 
     def to_csv(self, name="graph.csv"):
         with open(name, 'w') as f:
-            for src in self.__graph_dic:
-                for dst in self.__graph_dic[src]:
+            for src in self.__graph_dic__:
+                for dst in self.__graph_dic__[src]:
                     f.write('{},{}\n'.format(src, dst))
 
-
-    def __complete_vertices(self):
-        add_list = set()
-
-        for vertex in self.__graph_dic:
-            for neighbour in self.__graph_dic[vertex]:
-                # for dictionary's length can not be change during iteration,we use list to store the unexist vertex
-                if neighbour not in self.__graph_dic:
-                    add_list.add(neighbour)
-        for not_exist_vertex in add_list:
-            self.add_vertices(not_exist_vertex)
-
     def vertices(self):
-        return self.__graph_dic.keys()
-
-    def add_vertices(self, v):
-        if v not in self.__graph_dic:
-            self.__graph_dic[v] = []
-            self.degree_dic[v] = dict(Graph.INIT_DEGREE_DIC)
+        return self.__graph_dic__.keys()
 
     # partially match
     def find_vertex(self, word):
@@ -49,34 +36,26 @@ class Graph(object):
 
     def add_edge(self, edge):
         (vertex, neighbour) = tuple(edge)
-        if vertex in self.__graph_dic:
-            if neighbour not in self.__graph_dic[vertex]:
-                self.__graph_dic[vertex].append(neighbour)
-                if neighbour not in self.__graph_dic:
-                    self.add_vertices(neighbour)
-                self.degree_dic[neighbour]['in'] += 1
-                self.degree_dic[vertex]['out'] += 1
-        else:
-            self.add_vertices(vertex)
-            self.__graph_dic[vertex].append(neighbour)
-            self.degree_dic[vertex]['out'] += 1
-            if neighbour not in self.__graph_dic:
-                self.add_vertices(neighbour)
+        if neighbour not in self.__graph_dic__[vertex]:
+            self.__graph_dic__[vertex].append(neighbour)
+            if neighbour not in self.__graph_dic__:
+                self.__graph_dic__[neighbour] = []
             self.degree_dic[neighbour]['in'] += 1
+            self.degree_dic[vertex]['out'] += 1
 
     def get_neighbour(self, vertex=None):
         if vertex is not None:
-            return self.__graph_dic[vertex]
+            return self.__graph_dic__[vertex]
         else:
-            return self.__graph_dic
+            return self.__graph_dic__
 
-    def __compute_degree(self):
-        for vertex in self.__graph_dic:
+    def __compute_degree__(self):
+        for vertex in self.__graph_dic__:
             self.degree_dic[vertex] = {'in': 0, 'out': 0}
-        for vertex in self.__graph_dic:
-            if not self.__graph_dic[vertex]:
+        for vertex in self.__graph_dic__:
+            if not self.__graph_dic__[vertex]:
                 continue
-            for neighbour in self.__graph_dic[vertex]:
+            for neighbour in self.__graph_dic__[vertex]:
                 self.degree_dic[vertex]['out'] += 1
                 self.degree_dic[neighbour]['in'] += 1
 
@@ -85,8 +64,8 @@ class Graph(object):
 
     def get_parent(self, vertex):
         parent = set()
-        for v in self.__graph_dic:
-            if vertex in self.__graph_dic[v]:
+        for v in self.__graph_dic__:
+            if vertex in self.__graph_dic__[v]:
                 parent.add(v)
         return parent
 
@@ -104,26 +83,24 @@ class Graph(object):
     def distance(a, b):
         return 1
 
-    # dijstra algorithm
+    # Dijkstra algorithm
     def path_between(self, src, dst):
         if src is dst:
             return [src]
 
         # selected points list
-        S = []
+        S = {src}
         # path point dictionary
         P = {}
         # distance dictionary
         D = {}
-        # define -1 as inf here
         for v in self.vertices():
             if v in self.get_neighbour(src):
                 D[v] = self.distance(src, v)
                 P[v] = src
             else:
-                D[v] = -1
+                D[v] = float('inf')
         P[src] = None
-        S.append(src)
 
         while dst not in P and P.keys() != S:
             unselected_p = [p for p in P if p not in S]
@@ -132,21 +109,20 @@ class Graph(object):
             for p in unselected_p:
                 if D[p] < D[select_p]:
                     select_p = p
-            S.append(select_p)
+            S.add(select_p)
 
             for neighbour in self.get_neighbour(select_p):
-                if D[select_p] + self.distance(select_p,neighbour) < D[neighbour] or D[neighbour] is -1:
+                if D[select_p] + self.distance(select_p, neighbour) < D[neighbour]:
                     D[neighbour] = D[select_p] + self.distance(select_p, neighbour)
                     P[neighbour] = select_p
 
-        if P.keys() is S:
+        if P.keys() == S:
             return None
         path = [dst]
         p = dst
-        while P[p] is not src:
+        while P[p] is not None:
             path.append(P[p])
             p = P[p]
-        path.append(src)
         return path
 
     # My shortest distance algorithm for no-rule-directed-graph
@@ -195,20 +171,19 @@ class Graph(object):
 
 
 if __name__ == '__main__':
-    g = Graph({'a':['b']})
-    g.add_vertices('a')
+    g = Graph()
     g.add_edge(['a', 'b'])
     g.add_edge(['a','b'])
     g.add_edge(['b', 'c'])
     g.add_edge(['a', 'c'])
     g.add_edge(['d', 'a'])
-    print g.get_neighbour()
-    print g.vertices()
+    print(g.get_neighbour())
+    print(g.vertices())
     for vertex in g.get_neighbour():
-        print vertex + ':',
-        print g.get_degree(vertex)
+        print(vertex + ':')
+        print(g.get_degree(vertex))
 
-    print "c's parent:",
-    print g.get_parent('c')
-    print "path d to c:",
-    print g.path_between('d', 'c')
+    print("c's parent:")
+    print(g.get_parent('c'))
+    print("path d to c:")
+    print(g.path_between('d', 'c'))
