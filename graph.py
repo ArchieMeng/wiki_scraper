@@ -5,7 +5,6 @@ from copy import copy
 
 
 class Graph(object):
-
     INIT_DEGREE_DIC = [('in', 0), ('out', 0)]
 
     def __init__(self, **kwargs):
@@ -13,7 +12,7 @@ class Graph(object):
             self.__graph_dic__ = copy(kwargs['graph_obj'].__graph_dic__)
             self.degree_dic = copy(kwargs['graph_obj'].degree_dic)
         else:
-            self.__graph_dic__ = defaultdict(list)
+            self.__graph_dic__ = defaultdict(dict)
             self.degree_dic = defaultdict(lambda: defaultdict(int))
             self.__compute_degree__()
 
@@ -34,12 +33,12 @@ class Graph(object):
                 v.append(vertex)
         return v
 
-    def add_edge(self, edge):
+    def add_edge(self, edge, value=None):
         (vertex, neighbour) = tuple(edge)
         if neighbour not in self.__graph_dic__[vertex]:
-            self.__graph_dic__[vertex].append(neighbour)
+            self.__graph_dic__[vertex][neighbour] = value if value else 1
             if neighbour not in self.__graph_dic__:
-                self.__graph_dic__[neighbour] = []
+                self.__graph_dic__[neighbour] = {}
             self.degree_dic[neighbour]['in'] += 1
             self.degree_dic[vertex]['out'] += 1
 
@@ -78,10 +77,12 @@ class Graph(object):
         else:
             raise TypeError
 
-    # distance function.Must be fix when we are using a graph with som distance between vertices
-    @staticmethod
-    def distance(a, b):
-        return 1
+    # distance function. return value if edge exist, else return inf
+    def distance(self, a, b):
+        if b in self.__graph_dic__[a]:
+            return self.__graph_dic__[a][b]
+        else:
+            return float('inf')
 
     # Dijkstra algorithm
     def path_between(self, src, dst):
@@ -95,11 +96,9 @@ class Graph(object):
         # distance dictionary
         D = {}
         for v in self.vertices():
-            if v in self.get_neighbour(src):
-                D[v] = self.distance(src, v)
+            D[v] = self.distance(src, v)
+            if v in self.__graph_dic__[src]:
                 P[v] = src
-            else:
-                D[v] = float('inf')
         P[src] = None
 
         while dst not in P and P.keys() != S:
@@ -187,3 +186,4 @@ if __name__ == '__main__':
     print(g.get_parent('c'))
     print("path d to c:")
     print(g.path_between('d', 'c'))
+    g.to_csv()
