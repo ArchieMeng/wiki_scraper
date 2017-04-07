@@ -1,25 +1,53 @@
-from bs4 import BeautifulSoup
-from urllib import urlopen
-import re
-from graph import Graph
-import pickle
-from sendmail import send_mail
-from collections import deque
-from decorators import *
-from cache_container.CacheContainer import CacheContainer
-import psutil as ps
+from __future__ import print_function
+
 import gc
+import pickle
+import re
+import sys
+from collections import deque
+from urllib import urlopen
+
+import psutil as ps
+from bs4 import BeautifulSoup
+
+from cache_container.CacheContainer import CacheContainer
+from decorators import *
+from graph import Graph
+from sendmail import send_mail
 
 WIKI_URL = "http://en.wikipedia.org"
 
 
-@randomize(30)
+@randomize(30, 40)
 def random_urlopen(url):
     r = urlopen(url)
     return r
 
 
-def getlinks(sublink, depth=1, send=False):
+def print_stderr(e):
+    print('An exception:\n{}\n has occured\n'.format(e.message), file=sys.stderr)
+
+
+def get_next_pages(page):
+    try:
+        req = random_urlopen(WIKI_URL + page)
+        content = req.read()
+
+        # use lxml first
+        try:
+            soup = BeautifulSoup(content, 'lxml')
+        except Exception as e:
+            print('An exception:\n{}\n has occured\n'.format(e.message), file=sys.stderr)
+            soup = BeautifulSoup(content)
+        links = soup.findAll("a", {'href': re.compile('^(/wiki/)[^:]*?$')})
+        return links
+    except Exception as e:
+        print_stderr(e)
+        # Todo pass failed url back to queue
+        return None
+
+
+def get_links(sublink, depth=1, send=False):
 
     try:
         with open('wiki' + sublink[5:] + '.pickle', 'r') as graph_file:
@@ -34,7 +62,7 @@ def getlinks(sublink, depth=1, send=False):
                               'Task: scrapying ' + sublink + ' continuing',
                               'with deepth:' + str(depth))
                 except:
-                    print "email is not sent"
+                    print("email is not sent")
 
     except:
         # None exist
@@ -46,7 +74,7 @@ def getlinks(sublink, depth=1, send=False):
                           'Task: scrapying ' + sublink + ' started',
                           'deepth:' + str(depth))
             except:
-                print "email is not sent"
+                print("email is not sent")
 
     list_container = CacheContainer()
     graph_container = CacheContainer()
@@ -61,6 +89,7 @@ def getlinks(sublink, depth=1, send=False):
             continue
 
         if ps.virtual_memory().percent > 80:
+            # Todo pack this GC operation into a function
             list_container.dump(page_list, name="list")
             del page_list
             page_list = deque()
@@ -71,32 +100,17 @@ def getlinks(sublink, depth=1, send=False):
             while ps.virtual_memory().percent > 80:
                 gc.collect()
 
-
-        # if reach max deepth, ignore it
+        # if reach max depth, ignore it
         if page_depth > 0:
-            try:
-                req = random_urlopen(WIKI_URL + page)
-            except Exception as e:
-                print "While opening url:\"{}\", an {} exception was raised ".format(WIKI_URL + page, e)
-                page_list.append((page, page_depth))
-                continue
-
-            content = req.read()
-            parent_page = page
-
-            # use lxml first
-            try:
-                soup = BeautifulSoup(content, 'lxml')
-            except:
-                soup = BeautifulSoup(content)
-
-            links = soup.findAll("a", {'href': re.compile('^(/wiki/)[^:]*?$')})
-            for link in links:
-                page = link.attrs['href']
-                if page not in graph.vertices():
-                    print '->'+page
-                    page_list.appendleft((page, page_depth - 1))
-                graph.add_edge([parent_page, page])
+            links = get_next_pages(page)
+            if links is not None:
+                parent_page = page
+                for link in links:
+                    page = link.attrs['href']
+                    if page not in graph.vertices():
+                        print('->' + page)
+                        page_list.appendleft((page, page_depth - 1))
+                    graph.add_edge([parent_page, page])
 
     with open('wiki'+sublink[5:]+'.pickle', 'wb') as graph_file:
         title = sublink[5:]
@@ -113,10 +127,9 @@ def getlinks(sublink, depth=1, send=False):
                           'The scrapy for '+sublink+' is done!',
                           str(v_num)+' vertices was reached!\n')
             except:
-                print 'email is not sent'
+                print('email is not sent')
+
 
 if __name__ == "__main__":
-    print WIKI_URL
-    getlinks('', depth=5)
-
-
+    print(WIKI_URL)
+    get_links('', depth=1)

@@ -1,5 +1,5 @@
-from time import sleep,time
 import random
+from time import sleep, time
 
 
 def static_var(**kwargs):
@@ -10,19 +10,17 @@ def static_var(**kwargs):
     return decorate
 
 
-def randomize(max_dur=5):
-    # this function will not delay when max_dur equal -1
+def randomize(min_dur=0, max_dur=5):
+    # this function will not delay when min_dur > max_dur
     method_delay = True
-    if max_dur == -1:
+    if min_dur > max_dur:
         method_delay = False
-    elif max_dur < 1:
-        max_dur = 5
 
     def decorate(func):
         def new_func(*args, **kwargs):
             if method_delay:
                 random.seed(time())
-                sleep(random.randint(1,max_dur))
+                sleep(random.randint(min_dur, max_dur))
             return func(*args, **kwargs)
         return new_func
     return decorate
